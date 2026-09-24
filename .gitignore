@@ -17,3 +17,6 @@ models/
 .DS_Store
 Thumbs.db
 *.egg-info/
+
+# Fresh-environment check (scripts/check_fresh_env.sh)
+.fresh_check/

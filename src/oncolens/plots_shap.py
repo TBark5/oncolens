@@ -8,6 +8,7 @@ import pandas as pd
 import shap
 from matplotlib.colors import LinearSegmentedColormap
 
+from oncolens.config import RANDOM_STATE
 from oncolens.explain import sigmoid
 from oncolens.style import BENIGN_COLOR, INK_MUTED, INK_SECONDARY, MALIGNANT_COLOR, SERIES, SURFACE
 
@@ -30,6 +31,7 @@ def plot_global_importance(importance: pd.DataFrame, unit: str, top_k: int = 15)
 
 def plot_beeswarm(explanation: shap.Explanation, max_display: int = 15) -> plt.Figure:
     """SHAP beeswarm: each dot is one patient; x = contribution, color = feature value."""
+    np.random.seed(RANDOM_STATE)  # shap jitters overlapping dots with numpy global randomness
     shap.plots.beeswarm(explanation, max_display=max_display, show=False, color=VALUE_CMAP,
                         axis_color=INK_MUTED, s=14, plot_size=(9, 0.4 * max_display + 1.5))
     fig = plt.gcf()
