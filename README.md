@@ -1,7 +1,7 @@
 # OncoLens: Explainable Tumor Classification Dashboard
 
 An end-to-end, reproducible machine-learning project on the public **Wisconsin Diagnostic Breast Cancer**
-dataset (bundled with scikit-learn). It compares four classifiers with leakage-safe cross-validation,
+dataset (bundled with scikit-learn). It compares five classifiers with leakage-safe cross-validation,
 picks a decision threshold that favors catching malignant cases, explains every prediction with SHAP,
 studies the mistakes, and ships an interactive Streamlit app.
 
@@ -12,7 +12,7 @@ studies the mistakes, and ships an interactive Streamlit app.
 
 ## Highlights
 
-- **4 models compared** (logistic regression, random forest, gradient boosting, RBF SVM) with stratified
+- **5 models compared** (logistic regression, random forest, gradient boosting, RBF SVM, XGBoost) with stratified
   5-fold CV, tuned with `GridSearchCV`, and ranked by **nested CV** so the tuning does not inflate scores.
 - **No data leakage:** scaling happens inside every CV pipeline; a 20% test set is held out and used exactly once.
 - **Recall-first threshold:** the decision threshold was lowered from 0.5 to **0.2** using only
@@ -21,7 +21,7 @@ studies the mistakes, and ships an interactive Streamlit app.
 - **Explainability:** exact SHAP values (linear explainer) for global importance and per-patient waterfalls,
   also computed live in the app for whatever the user enters.
 - **Error analysis:** misclassified tumors are compared feature by feature with correctly classified ones.
-- **Reproducible:** one command rebuilds every number and figure; 46 pytest tests; a script that verifies
+- **Reproducible:** one command rebuilds every number and figure; 48 pytest tests; a script that verifies
   the project from a fresh clone and a fresh virtual environment.
 
 ## Results
@@ -38,6 +38,7 @@ this README matches them exactly.
 | Random forest | 0.9863 ± 0.0075 | 0.9412 ± 0.0372 | 0.9582 ± 0.0162 | 0.0351 | 0.9880 ± 0.0073 |
 | Gradient boosting | 0.9914 ± 0.0057 | 0.9353 ± 0.0343 | 0.9648 ± 0.0162 | 0.0251 | 0.9908 ± 0.0054 |
 | SVM (RBF kernel) | 0.9938 ± 0.0067 | 0.9471 ± 0.0432 | 0.9670 ± 0.0098 | 0.0217 | 0.9949 ± 0.0050 |
+| XGBoost | 0.9936 ± 0.0037 | 0.9529 ± 0.0235 | 0.9758 ± 0.0082 | 0.0224 | 0.9942 ± 0.0039 |
 
 **Held-out test set** (114 samples, 42 malignant, used once), logistic regression:
 
@@ -49,7 +50,7 @@ this README matches them exactly.
 
 How to read this:
 
-- All four models are close (ROC AUC 0.986 to 0.995). The differences between the top three are smaller than
+- All five models are close (ROC AUC 0.986 to 0.995). The differences between the top four are smaller than
   the fold-to-fold standard deviation, so the choice of **logistic regression** rests on it scoring highest
   *and* being the simplest to explain, not on a decisive win.
 - Accuracy goes *down* slightly at threshold 0.2. That is intended: the threshold trades a few false alarms
@@ -83,8 +84,9 @@ matrices, learning curve, SHAP importance, beeswarm, four patient waterfalls, an
    (logistic regression, `C = 1.0`). The rule was fixed before looking at results: prefer logistic regression
    if it is within 0.005 of the best; it won outright, so the rule was not needed.
 4. **Calibration** (`04_calibration_threshold.py`): out-of-fold probabilities for the training split give an
-   honest reliability curve. For the final tuned models, logistic regression had the lowest out-of-fold Brier score (0.019) and expected calibration
-   error (0.017, 10 bins), below the pre-set 0.05 limit, so no recalibration was added.
+   honest reliability curve. Logistic regression had the lowest out-of-fold Brier score of the tuned models
+   (0.019). Its expected calibration error (0.017, 10 bins) was below the pre-set 0.05 limit (XGBoost's was
+   lower still, 0.012), so no recalibration was added.
 5. **Threshold selection** (same script): among thresholds 0.01 to 0.99, pick the **highest** one whose
    out-of-fold recall is at least 0.98. Result: 0.20. On the training folds this changed the outcome from
    8 missed / 4 false alarms (at 0.5) to 3 missed / 14 false alarms (at 0.2).

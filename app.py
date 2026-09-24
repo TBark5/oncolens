@@ -153,7 +153,7 @@ def main() -> None:
     with tab_about:
         st.markdown(
             "- **Model:** logistic regression on standardized features, chosen by nested cross-validation "
-            "against random forest, gradient boosting, and an RBF SVM.\n"
+            "against random forest, gradient boosting, an RBF SVM, and XGBoost.\n"
             "- **Explanation:** exact SHAP values from a linear explainer, in log-odds. Bars add up from the "
             "average prediction (base value) to this input's prediction.\n"
             "- **Caveat:** the 30 inputs are summary statistics of cell nuclei from one historical dataset of "

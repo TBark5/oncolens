@@ -3,3 +3,4 @@ logistic_regression,0.0191,0.0173
 random_forest,0.0324,0.0328
 gradient_boosting,0.0235,0.0231
 svm,0.02,0.021
+xgboost,0.022,0.012

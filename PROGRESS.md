@@ -7,7 +7,7 @@ classifier (Wisconsin dataset) with phases 0-7, then stretch goals, then MORNING
 - Phase 0: structure, venv (Python 3.14.5), pinned `requirements.txt`, git, docs skeleton.
 - Phase 1: data load/validate/cache (`data/`), stratified 80/20 split, summary table, 4 EDA figures.
 - Phase 2: logistic regression baseline (`results/baseline_cv.json`).
-- Phase 3: default CV + nested-CV comparison of 4 models, GridSearchCV tuning, calibration check,
+- Phase 3: default CV + nested-CV comparison of 5 models (incl. XGBoost stretch goal), GridSearchCV tuning, calibration check,
   recall-first threshold (0.20, from out-of-fold train predictions), one-time test evaluation,
   SHAP (exact LinearExplainer), error analysis (`results/error_analysis.md`).
 - Phase 4: 18 figures at 300 dpi in `figures/` (`scripts/07_figures.py`) + `figures/CAPTIONS.md`.

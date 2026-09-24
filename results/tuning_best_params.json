@@ -28,5 +28,14 @@
       "gamma": 0.001
     },
     "best_inner_cv_roc_auc": 0.996
+  },
+  "xgboost": {
+    "best_params": {
+      "learning_rate": 0.05,
+      "max_depth": 3,
+      "n_estimators": 300,
+      "subsample": 0.8
+    },
+    "best_inner_cv_roc_auc": 0.9942
   }
 }

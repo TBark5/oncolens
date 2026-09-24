@@ -64,10 +64,29 @@ def build_summary() -> str:
     )
 
 
+def update_readme(summary: str) -> bool:
+    """Replace the README block between the results markers; return True if it changed."""
+    readme = config.PROJECT_ROOT / "README.md"
+    if not readme.exists():
+        return False
+    text = readme.read_text(encoding="utf-8")
+    start, end = "<!-- results:start -->\n", "<!-- results:end -->"
+    if start not in text or end not in text:
+        return False
+    head, rest = text.split(start, 1)
+    _, tail = rest.split(end, 1)
+    new_text = f"{head}{start}{summary}{end}{tail}"
+    if new_text != text:
+        readme.write_text(new_text, encoding="utf-8")
+    return new_text != text
+
+
 def main() -> None:
-    """Write results/summary_tables.md."""
-    SUMMARY_FILE.write_text(build_summary(), encoding="utf-8")
-    print(f"Wrote {SUMMARY_FILE}")
+    """Write results/summary_tables.md and refresh the matching block in README.md."""
+    summary = build_summary()
+    SUMMARY_FILE.write_text(summary, encoding="utf-8")
+    changed = update_readme(summary)
+    print(f"Wrote {SUMMARY_FILE}; README results block {'updated' if changed else 'already up to date'}")
 
 
 if __name__ == "__main__":
