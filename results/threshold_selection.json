@@ -1,0 +1,41 @@
+{
+  "model": "logistic_regression",
+  "target_recall": 0.98,
+  "chosen_threshold": 0.2,
+  "calibration_oof": {
+    "brier": 0.019069034064546193,
+    "ece": 0.017280026074130497
+  },
+  "ece_limit_for_recalibration": 0.05,
+  "recalibrated": false,
+  "oof_metrics_at_0.5": {
+    "threshold": 0.5,
+    "accuracy": 0.9736263736263736,
+    "precision": 0.9759036144578314,
+    "recall": 0.9529411764705882,
+    "specificity": 0.9859649122807017,
+    "f1": 0.9642857142857143,
+    "roc_auc": 0.9952734778121776,
+    "average_precision": 0.9943411561212314,
+    "brier": 0.019069034064546193,
+    "tp": 162,
+    "fp": 4,
+    "tn": 281,
+    "fn": 8
+  },
+  "oof_metrics_at_chosen_threshold": {
+    "threshold": 0.2,
+    "accuracy": 0.9626373626373627,
+    "precision": 0.9226519337016574,
+    "recall": 0.9823529411764705,
+    "specificity": 0.9508771929824561,
+    "f1": 0.9515669515669516,
+    "roc_auc": 0.9952734778121776,
+    "average_precision": 0.9943411561212314,
+    "brier": 0.019069034064546193,
+    "tp": 167,
+    "fp": 14,
+    "tn": 271,
+    "fn": 3
+  }
+}
