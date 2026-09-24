@@ -16,12 +16,12 @@ SUMMARY_FILE = config.RESULTS_DIR / "summary_tables.md"
 
 
 def cv_table() -> str:
-    """Nested-CV comparison of the four tuned models, plus the default-settings ROC AUC."""
+    """Nested-CV comparison of all tuned models, plus the default-settings ROC AUC."""
     nested = pd.read_csv(config.RESULTS_DIR / "cv_nested_tuned_models.csv", index_col="model")
     default = pd.read_csv(config.RESULTS_DIR / "cv_default_models.csv", index_col="model")
     chosen = read_json(config.RESULTS_DIR / "model_selection.json")["chosen_model"]
     lines = [
-        "| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier | ROC AUC (default settings) |",
+        "| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier (nested CV) | ROC AUC (default settings) |",
         "|---|---|---|---|---|---|",
     ]
     for m in MODEL_NAMES:

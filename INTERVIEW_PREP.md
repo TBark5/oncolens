@@ -21,9 +21,9 @@ actual costs.
 
 **3. Why logistic regression and not a fancier model?**
 It had the highest nested-CV ROC AUC (0.9949), although the top four models are within one standard deviation
-of each other. So the tie-breakers mattered: it is the simplest, it had the lowest out-of-fold Brier score
-(0.019; XGBoost had a slightly lower calibration error, 0.012 vs 0.017), and its SHAP values are exact and fast. With 455 training samples and features that are mostly linearly
-separable, a more complex model has little to gain.
+of each other. So the tie-breakers mattered: it is the simplest, its probabilities are about as well
+calibrated as the others, and its SHAP values are exact and fast. With 455 training samples and features
+that are mostly linearly separable, a more complex model has little to gain.
 
 **4. What is nested cross-validation and why use it?**
 GridSearchCV reports the best score over many hyperparameter settings. That score is optimistically biased
@@ -35,18 +35,21 @@ fair way to compare tuned models.
 Three ways. The scaler sits inside a scikit-learn `Pipeline`, so in cross-validation it is fitted on the
 training folds only. The 20% test split was set aside at the start and used once, at the end. And every
 choice (model, hyperparameters, threshold, calibration check) used only training data, mostly out-of-fold
-predictions. Even the exploratory plots used the training split.
+predictions. Even the exploratory plots used the training split (except the plain label-count chart).
 
 **6. What does "calibrated" mean, and was your model calibrated?**
 A model is calibrated if, among cases it gives 30%, about 30% are really malignant. I checked it with a
 reliability curve on out-of-fold predictions, the Brier score (0.019) and the expected calibration error
 (0.017). That was good enough, below the 0.05 limit I set in advance, so I did not add a recalibration step.
+Those out-of-fold predictions use hyperparameters picked on the same folds, so they are slightly optimistic;
+with the chosen C equal to the default, that effect is tiny.
 One caveat: most predictions are near 0 or 1, so the middle bins have very few samples and are noisy.
 
 **7. Explain SHAP in plain words.**
-SHAP splits a single prediction into contributions from each feature, starting from the average prediction.
+SHAP splits a single prediction into contributions from each feature, starting from a base value (the
+average log-odds over the training data).
 For a linear model it is exact: each contribution is the coefficient times how far the feature is from its
-average (on the scaled data). The bars in the waterfall add up to the model's log-odds for that patient.
+average (on the scaled data). Base value plus the bars equals the model's log-odds for that patient.
 I checked in a test that they reproduce the predicted probability.
 
 **8. Which features matter most?**

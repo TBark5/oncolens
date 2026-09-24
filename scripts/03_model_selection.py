@@ -1,4 +1,4 @@
-"""Phase 3a: compare four models, tune them, choose one, and save out-of-fold predictions."""
+"""Phase 3a: compare five models, tune them, choose one, and save out-of-fold predictions."""
 
 from __future__ import annotations
 

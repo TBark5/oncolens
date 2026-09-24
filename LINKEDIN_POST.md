@@ -16,8 +16,8 @@ questions were:
    from 1 to 4.
 
 3. Why did the model decide that? Every prediction in the app comes with a SHAP breakdown of which
-   measurements pushed it toward benign or malignant. Looking at the mistakes was the most useful part. They
-   were mostly "in-between" tumors: large benign ones and small malignant ones.
+   measurements pushed it toward benign or malignant. Looking at the mistakes was the most useful part. On
+   average they were "in-between" tumors: large benign ones and small malignant ones.
 
 What I'd do differently: get a larger, more recent, multi-site dataset, report confidence intervals, and
 talk to clinicians about what the real costs of each error type are.

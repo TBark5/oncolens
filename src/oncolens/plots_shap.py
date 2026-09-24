@@ -83,7 +83,7 @@ def plot_waterfall(values: np.ndarray, data: np.ndarray, names: list[str], base:
         ax.axvline(cut, color=THRESHOLD_COLOR, linewidth=1.4, zorder=1)
         ax.text(cut, top + 0.1, f" decision threshold (p = {threshold:g})", color=THRESHOLD_COLOR,
                 fontsize=9, va="bottom")
-    ax.text(0.99, 0.01, f"base value {base:.2f} (p = {sigmoid(base):.2f})   ->   "
+    ax.text(0.99, 0.01, f"base value (mean log-odds) {base:.2f}   ->   "
             f"this patient {final:.2f} (p = {sigmoid(final):.3f})", transform=ax.transAxes, ha="right",
             va="bottom", fontsize=9.5, color=INK_SECONDARY, bbox={"facecolor": SURFACE, "edgecolor": "none"})
     ax.set_xlim(lo - pad, hi + pad)

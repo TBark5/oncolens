@@ -155,7 +155,7 @@ def main() -> None:
             "- **Model:** logistic regression on standardized features, chosen by nested cross-validation "
             "against random forest, gradient boosting, an RBF SVM, and XGBoost.\n"
             "- **Explanation:** exact SHAP values from a linear explainer, in log-odds. Bars add up from the "
-            "average prediction (base value) to this input's prediction.\n"
+            "base value (average log-odds over the training data) to this input's log-odds.\n"
             "- **Caveat:** the 30 inputs are summary statistics of cell nuclei from one historical dataset of "
             "569 samples. Correlated inputs share credit, so a single SHAP bar is not a causal effect.\n"
             "- Code, figures and limitations: see README.md."
