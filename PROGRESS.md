@@ -9,9 +9,10 @@
   SHAP (exact LinearExplainer), error analysis (`results/error_analysis.md`).
 - Phase 4: 18 figures at 300 dpi in `figures/` (scripts/07_figures.py) + `figures/CAPTIONS.md`.
 - Phase 5: Streamlit app (`app.py`, helpers in `src/oncolens/app_support.py`), verified with AppTest and a live server; screenshots in `docs/screenshots/`.
+- Phase 6: 37 pytest tests (`tests/`), `run_all.py --clean --tests`, `scripts/check_fresh_env.sh` (fresh clone + fresh venv + results identical) PASSED.
 
 ## In progress
-- Phase 6: pytest tests, run_all.py, fresh-venv check.
+- Phase 7: README and career docs; then stretch goals.
 
 ## Next
 - Phase 5 Streamlit app, Phase 6 tests + run_all.py + fresh-venv check, Phase 7 docs.
