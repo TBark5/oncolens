@@ -29,6 +29,7 @@ STEPS: list[tuple[str, str]] = [
     ("05_final_test.py", "One-time held-out test evaluation"),
     ("06_explain_errors.py", "SHAP explanations and error analysis"),
     ("07_figures.py", "Evaluation, SHAP and error figures"),
+    ("08_summary_tables.py", "Markdown results tables for the README"),
 ]
 
 
