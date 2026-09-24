@@ -117,6 +117,8 @@ matrices, learning curve, SHAP importance, beeswarm, four patient waterfalls, an
 streamlit run app.py
 ```
 
+![Demo: raising worst texture moves the prediction and the SHAP waterfall](docs/demo.gif)
+
 - 30 sliders (the 8 most influential up front, the rest grouped as mean / standard error / worst values),
   with ranges taken from the training data, plus presets such as "typical benign" and "typical malignant".
 - Output: the predicted class at threshold 0.2, P(malignant), and the probability of the predicted class.
@@ -146,7 +148,7 @@ Other commands:
 pytest -q                              # tests only
 bash scripts/check_fresh_env.sh        # clone -> new venv -> clean run -> tests -> compare results
 pip install -r requirements-dev.txt
-python scripts/capture_screenshots.py  # regenerate app screenshots (uses your installed Chrome)
+python scripts/capture_screenshots.py --gif  # regenerate app screenshots + docs/demo.gif (uses your installed Chrome)
 ```
 
 The dataset ships with scikit-learn, so nothing is downloaded. A CSV copy is cached in `data/` on the first

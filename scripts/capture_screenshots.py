@@ -2,12 +2,14 @@
 
 Dev-only tool (needs `pip install -r requirements-dev.txt`). It uses the locally installed
 Google Chrome through Playwright, so no browser download is required. Pass
-``--browser msedge`` to use Microsoft Edge instead.
+``--browser msedge`` to use Microsoft Edge instead, and ``--gif`` to also record
+docs/demo.gif (a short clip of a slider moving and the explanation updating).
 """
 
 from __future__ import annotations
 
 import argparse
+import io
 import subprocess
 import sys
 import time
@@ -16,10 +18,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from PIL import Image
 from playwright.sync_api import Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "docs" / "screenshots"
+GIF_PATH = ROOT / "docs" / "demo.gif"
 PORT = 8765
 
 
@@ -63,10 +67,33 @@ def load_preset(page: Page, label: str) -> None:
     wait_for_app(page)
 
 
+def frame(page: Page, width: int = 960) -> Image.Image:
+    """Screenshot the visible viewport and shrink it to a GIF-friendly width."""
+    img = Image.open(io.BytesIO(page.screenshot())).convert("RGB")
+    return img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
+
+
+def record_gif(page: Page, steps: int = 8, keys_per_step: int = 12) -> None:
+    """Start from the typical benign preset, then raise "worst texture" step by step."""
+    load_preset(page, "Typical benign (median of benign)")
+    frames = [frame(page)]
+    thumb = page.get_by_role("slider", name="worst texture").first
+    thumb.focus()
+    for _ in range(steps):
+        for _ in range(keys_per_step):
+            thumb.press("ArrowRight")
+        page.wait_for_timeout(1800)
+        frames.append(frame(page))
+    frames += [frames[-1]] * 3  # pause on the last frame
+    frames[0].save(GIF_PATH, save_all=True, append_images=frames[1:], duration=700, loop=0, optimize=True)
+    print(f"GIF saved to {GIF_PATH} ({len(frames)} frames)")
+
+
 def main() -> None:
     """Capture the prediction view (two presets) and the performance tab."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", default="chrome", choices=["chrome", "msedge"])
+    parser.add_argument("--gif", action="store_true", help="also record docs/demo.gif")
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with streamlit_server() as url, sync_playwright() as pw:
@@ -80,6 +107,10 @@ def main() -> None:
         page.get_by_role("tab", name="Model performance").click()
         page.wait_for_timeout(2500)
         page.screenshot(path=OUT_DIR / "app_performance.png", full_page=True)
+        if args.gif:
+            page.get_by_role("tab", name="Prediction").click()
+            page.set_viewport_size({"width": 1440, "height": 1100})
+            record_gif(page)
         browser.close()
     print(f"Screenshots saved to {OUT_DIR}")
 
