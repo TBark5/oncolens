@@ -11,3 +11,4 @@ llvmlite==0.49.0
 streamlit==1.64.0
 joblib==1.6.0
 pytest==9.1.1
+-e .
