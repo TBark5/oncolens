@@ -1,0 +1,10 @@
+# Top-level dependencies (exact pins live in requirements.txt)
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+shap
+streamlit
+joblib
+pytest
