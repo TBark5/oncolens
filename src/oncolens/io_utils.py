@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def _to_builtin(value: Any) -> Any:
@@ -32,3 +35,13 @@ def write_json(data: dict[str, Any], path: Path) -> Path:
 def read_json(path: Path) -> dict[str, Any]:
     """Read a JSON file into a dictionary."""
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def dataframe_to_markdown(df: "pd.DataFrame", index_label: str = "") -> str:
+    """Render a small DataFrame as a GitHub-flavored Markdown table (no extra dependency)."""
+    header = [index_label or (df.index.name or "")] + [str(c) for c in df.columns]
+    lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+    for idx, row in df.iterrows():
+        cells = [str(idx)] + [f"{v:g}" if isinstance(v, float) else str(v) for v in row.tolist()]
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)

@@ -1,0 +1,5 @@
+example,test_row,true_label,outcome,p_malignant,top_features
+missed_malignant_1,16,1,FN,0.0614,worst texture (-1.19); radius error (-0.56); worst symmetry (-0.55); texture error (+0.44); mean texture (-0.41)
+false_alarm_highest_p,4,0,FP,0.5092,worst texture (+3.71); mean texture (+1.27); worst symmetry (-1.21); worst concavity (-0.88); compactness error (+0.66)
+confident_malignant,108,1,TP,1.0,radius error (+3.74); worst area (+2.93); worst radius (+2.65); area error (+2.61); perimeter error (+2.37)
+confident_benign,91,0,TN,0.0,fractal dimension error (-4.10); compactness error (-3.52); worst texture (-2.42); worst radius (-1.21); worst symmetry (-1.11)

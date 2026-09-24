@@ -1,0 +1,9 @@
+feature,FN,FP
+worst texture,0.6066,0.4989
+radius error,0.5523,0.1929
+mean concave points,0.2473,0.2986
+worst symmetry,-0.8596,0.3973
+worst concavity,0.0718,0.5358
+worst radius,0.3107,0.3643
+worst area,0.2638,0.2904
+compactness error,1.3553,0.6837
