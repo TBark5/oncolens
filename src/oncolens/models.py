@@ -17,16 +17,18 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from xgboost import XGBClassifier
 
 from oncolens import config
 
-MODEL_NAMES: tuple[str, ...] = ("logistic_regression", "random_forest", "gradient_boosting", "svm")
+MODEL_NAMES: tuple[str, ...] = ("logistic_regression", "random_forest", "gradient_boosting", "svm", "xgboost")
 
 DISPLAY_NAMES: dict[str, str] = {
     "logistic_regression": "Logistic regression",
     "random_forest": "Random forest",
     "gradient_boosting": "Gradient boosting",
     "svm": "SVM (RBF kernel)",
+    "xgboost": "XGBoost",
 }
 
 
@@ -40,6 +42,9 @@ def make_estimator(name: str) -> ClassifierMixin:
         # SVC has no native probabilities; Platt (sigmoid) scaling via an inner 5-fold CV adds them.
         # This is the replacement sklearn recommends for the deprecated SVC(probability=True).
         "svm": CalibratedClassifierCV(SVC(kernel="rbf", random_state=seed), method="sigmoid", ensemble=False),
+        # Stretch goal. n_jobs=1 keeps results bit-for-bit reproducible.
+        "xgboost": XGBClassifier(n_estimators=300, max_depth=3, learning_rate=0.1, tree_method="hist",
+                                 eval_metric="logloss", random_state=seed, n_jobs=1),
     }
     if name not in estimators:
         raise ValueError(f"Unknown model {name!r}; choose from {sorted(estimators)}")
@@ -69,6 +74,12 @@ def param_grid(name: str) -> dict[str, list[Any]]:
         "svm": {
             "model__estimator__C": [0.1, 1.0, 10.0, 100.0],
             "model__estimator__gamma": ["scale", 0.001, 0.01, 0.1],
+        },
+        "xgboost": {
+            "model__n_estimators": [100, 300],
+            "model__learning_rate": [0.05, 0.1],
+            "model__max_depth": [2, 3],
+            "model__subsample": [0.8, 1.0],
         },
     }
     return grids[name]

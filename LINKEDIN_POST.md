@@ -7,7 +7,7 @@ The dataset is a classic. Most models score well on it, so accuracy was not the 
 questions were:
 
 1. How do you compare models honestly? I used nested cross-validation, so the hyperparameter search could not
-   quietly inflate the scores. Four models (logistic regression, random forest, gradient boosting, SVM) all
+   quietly inflate the scores. Five models (logistic regression, random forest, gradient boosting, SVM, XGBoost) all
    landed between 0.986 and 0.995 ROC AUC. The simplest one, logistic regression, came out on top.
 
 2. What should the decision threshold be? The default cut-off of 0.5 treats a missed cancer and a false alarm

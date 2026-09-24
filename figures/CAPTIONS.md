@@ -9,9 +9,9 @@ Colors: benign = blue, malignant = orange; each model keeps one color and line s
 | `02_correlation_heatmap.png` | Pearson correlations among the 30 features on the training split; the radius, perimeter, and area features are almost perfectly correlated with each other. |
 | `03_pca_scatter.png` | A two-component PCA of the standardized training features shows the two classes separating mainly along the first component, with a narrow region of overlap. |
 | `04_feature_distributions.png` | Per-class histograms of three features on the training split: worst concave points and worst perimeter separate the classes well, mean texture much less so. |
-| `05_model_comparison_cv.png` | Mean and standard deviation of ROC AUC and recall across 5 stratified folds for all four models, with tuned (nested CV) and default hyperparameters. |
-| `06_roc_curves.png` | Out-of-fold ROC curves on the training split for the four tuned models, with a zoom on the top-left corner where they differ. |
-| `07_precision_recall_curves.png` | Out-of-fold precision-recall curves on the training split for the four tuned models, with a zoom on the high-recall region. |
+| `05_model_comparison_cv.png` | Mean and standard deviation of ROC AUC and recall across 5 stratified folds for all five models, with tuned (nested CV) and default hyperparameters. |
+| `06_roc_curves.png` | Out-of-fold ROC curves on the training split for the five tuned models, with a zoom on the top-left corner where they differ. |
+| `07_precision_recall_curves.png` | Out-of-fold precision-recall curves on the training split for the five tuned models, with a zoom on the high-recall region. |
 | `08_calibration_curve.png` | Reliability diagram of out-of-fold probabilities (top) and the logistic regression's prediction histogram (bottom); most predictions are near 0 or 1, so the middle bins are noisy. |
 | `09_threshold_tradeoff.png` | Recall, precision, and specificity of logistic regression as the decision threshold changes, with the chosen threshold of 0.2 and the default of 0.5 marked. |
 | `10_confusion_matrices.png` | Confusion matrices for logistic regression on out-of-fold training predictions and on the held-out test set, at thresholds 0.5 and 0.2. |

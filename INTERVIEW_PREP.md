@@ -7,7 +7,7 @@ Short, accurate answers. Numbers come from `results/`. If you are unsure of a nu
 
 **1. Give me the 30-second summary.**
 I built a classifier for the Wisconsin breast cancer dataset (569 tumors, 30 cell-nucleus measurements).
-I compared four models with nested cross-validation, picked logistic regression, lowered the decision threshold
+I compared five models with nested cross-validation, picked logistic regression, lowered the decision threshold
 to 0.2 so it catches more malignant cases, explained each prediction with SHAP, and wrapped it in a Streamlit
 app. On a held-out test set it caught 41 of 42 malignant tumors with 4 false alarms among 72 benign ones.
 
@@ -20,9 +20,9 @@ and 14 false alarms. The 98% target itself is a judgment call; in real life clin
 actual costs.
 
 **3. Why logistic regression and not a fancier model?**
-It had the highest nested-CV ROC AUC (0.9949), although the top three models are within one standard deviation
-of each other. So the tie-breakers mattered: it is the simplest, its probabilities were the best calibrated,
-and its SHAP values are exact and fast. With 455 training samples and features that are mostly linearly
+It had the highest nested-CV ROC AUC (0.9949), although the top four models are within one standard deviation
+of each other. So the tie-breakers mattered: it is the simplest, it had the lowest out-of-fold Brier score
+(0.019; XGBoost had a slightly lower calibration error, 0.012 vs 0.017), and its SHAP values are exact and fast. With 455 training samples and features that are mostly linearly
 separable, a more complex model has little to gain.
 
 **4. What is nested cross-validation and why use it?**
@@ -80,7 +80,7 @@ counts both errors equally, which is exactly the assumption I rejected.
 **13. How is the project engineered?**
 A small `src/` package with type hints and docstrings, one script per pipeline step, and `run_all.py` that
 rebuilds everything in about a minute. Seeds are fixed, and a rerun produces byte-identical results files.
-There are 46 pytest tests, including a headless run of the Streamlit app and a test that the README tables
+There are 48 pytest tests, including a headless run of the Streamlit app and a test that the README tables
 match the generated results. A script clones the repo into a fresh virtual environment and checks the whole
 thing end to end.
 

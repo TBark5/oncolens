@@ -23,15 +23,15 @@ from oncolens.style import (
 )
 
 # Each model keeps the same color and line style in every chart (style = secondary encoding).
-MODEL_COLORS = dict(zip(MODEL_NAMES, SERIES[:4]))
-MODEL_STYLES = dict(zip(MODEL_NAMES, ["-", "--", "-.", ":"]))
+MODEL_COLORS = dict(zip(MODEL_NAMES, SERIES))
+MODEL_STYLES = dict(zip(MODEL_NAMES, ["-", "--", "-.", ":", (0, (5, 1, 1, 1, 1, 1))]))
 THRESHOLD_COLOR = SERIES[6]
 
 
 def plot_cv_comparison(nested: pd.DataFrame, default: pd.DataFrame) -> plt.Figure:
     """Mean +/- std across the 5 outer folds for ROC AUC and recall, tuned vs default."""
     metrics = [("roc_auc", "ROC AUC"), ("recall", "Recall (malignant) at p >= 0.5")]
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 1.0 * len(MODEL_NAMES) + 0.8), sharey=True)
     y_pos = np.arange(len(MODEL_NAMES))[::-1]
     for ax, (key, label) in zip(axes, metrics):
         for offset, frame, marker in ((0.14, nested, "o"), (-0.14, default, "s")):
@@ -65,11 +65,11 @@ def _overlay(ax: plt.Axes, oof: pd.DataFrame, kind: str) -> None:
         p = oof[model].to_numpy()
         if kind == "roc":
             fpr, tpr, _ = roc_curve(y, p)
-            ax.plot(fpr, tpr, MODEL_STYLES[model], color=MODEL_COLORS[model],
+            ax.plot(fpr, tpr, linestyle=MODEL_STYLES[model], color=MODEL_COLORS[model],
                     label=f"{DISPLAY_NAMES[model]} (AUC {roc_auc_score(y, p):.4f})")
         else:
             prec, rec, _ = precision_recall_curve(y, p)
-            ax.plot(rec, prec, MODEL_STYLES[model], color=MODEL_COLORS[model], drawstyle="steps-post",
+            ax.plot(rec, prec, linestyle=MODEL_STYLES[model], color=MODEL_COLORS[model], drawstyle="steps-post",
                     label=f"{DISPLAY_NAMES[model]} (AP {average_precision_score(y, p):.4f})")
 
 
@@ -118,7 +118,7 @@ def plot_calibration(oof: pd.DataFrame, calib: pd.DataFrame, n_bins: int = 10) -
     ax.plot([0, 1], [0, 1], color=INK_MUTED, lw=1, ls=":", label="Perfect calibration")
     for model in MODEL_NAMES:
         frac, mean_pred = calibration_curve(y, oof[model], n_bins=n_bins, strategy="uniform")
-        ax.plot(mean_pred, frac, MODEL_STYLES[model], marker="o", ms=5, color=MODEL_COLORS[model],
+        ax.plot(mean_pred, frac, linestyle=MODEL_STYLES[model], marker="o", ms=5, color=MODEL_COLORS[model],
                 label=f"{DISPLAY_NAMES[model]} (Brier {calib.loc[model, 'brier']:.3f}, "
                       f"ECE {calib.loc[model, 'ece']:.3f})")
     ax.set_ylabel("Observed fraction malignant")
