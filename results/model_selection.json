@@ -1,0 +1,8 @@
+{
+  "chosen_model": "logistic_regression",
+  "reason": "logistic_regression had the highest nested-CV ROC AUC (0.9949).",
+  "selection_metric": "nested-CV mean roc_auc",
+  "best_params": {
+    "C": 1.0
+  }
+}

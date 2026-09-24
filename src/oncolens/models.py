@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from sklearn.base import ClassifierMixin
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
@@ -36,7 +37,9 @@ def make_estimator(name: str) -> ClassifierMixin:
         "logistic_regression": LogisticRegression(max_iter=5000, random_state=seed),
         "random_forest": RandomForestClassifier(n_estimators=300, random_state=seed, n_jobs=-1),
         "gradient_boosting": GradientBoostingClassifier(random_state=seed),
-        "svm": SVC(kernel="rbf", probability=True, random_state=seed),
+        # SVC has no native probabilities; Platt (sigmoid) scaling via an inner 5-fold CV adds them.
+        # This is the replacement sklearn recommends for the deprecated SVC(probability=True).
+        "svm": CalibratedClassifierCV(SVC(kernel="rbf", random_state=seed), method="sigmoid", ensemble=False),
     }
     if name not in estimators:
         raise ValueError(f"Unknown model {name!r}; choose from {sorted(estimators)}")
@@ -64,8 +67,8 @@ def param_grid(name: str) -> dict[str, list[Any]]:
             "model__subsample": [0.8, 1.0],
         },
         "svm": {
-            "model__C": [0.1, 1.0, 10.0, 100.0],
-            "model__gamma": ["scale", 0.001, 0.01, 0.1],
+            "model__estimator__C": [0.1, 1.0, 10.0, 100.0],
+            "model__estimator__gamma": ["scale", 0.001, 0.01, 0.1],
         },
     }
     return grids[name]
