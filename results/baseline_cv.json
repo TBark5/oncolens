@@ -1,0 +1,36 @@
+{
+  "model": "logistic_regression (default C=1.0, standardized features)",
+  "cv_folds": 5,
+  "n_train": 455,
+  "cv_fold_mean_std": {
+    "accuracy_mean": 0.9736263736263737,
+    "accuracy_std": 0.014906219743132443,
+    "precision_mean": 0.9771428571428572,
+    "precision_std": 0.027994168488950616,
+    "recall_mean": 0.9529411764705882,
+    "recall_std": 0.03989605872426629,
+    "f1_mean": 0.9640480895915677,
+    "f1_std": 0.020700447685741707,
+    "roc_auc_mean": 0.9957688338493291,
+    "roc_auc_std": 0.004665698474904977,
+    "average_precision_mean": 0.9949413585778274,
+    "average_precision_std": 0.004587868006333671,
+    "brier_mean": 0.019069034064546193,
+    "brier_std": 0.006341288892796882
+  },
+  "pooled_out_of_fold_at_0.5": {
+    "threshold": 0.5,
+    "accuracy": 0.9736263736263736,
+    "precision": 0.9759036144578314,
+    "recall": 0.9529411764705882,
+    "specificity": 0.9859649122807017,
+    "f1": 0.9642857142857143,
+    "roc_auc": 0.9952734778121776,
+    "average_precision": 0.9943411561212314,
+    "brier": 0.019069034064546193,
+    "tp": 162,
+    "fp": 4,
+    "tn": 281,
+    "fn": 8
+  }
+}
