@@ -1,0 +1,37 @@
+{
+  "threshold": 0.2,
+  "oof_outcome_counts": {
+    "TN": 271,
+    "TP": 167,
+    "FP": 14,
+    "FN": 3
+  },
+  "test_outcome_counts": {
+    "TN": 68,
+    "TP": 41,
+    "FP": 4,
+    "FN": 1
+  },
+  "oof_errors_borderline_share_within_0.15": 0.47058823529411764,
+  "oof_errors_median_distance_to_threshold": 0.16334841219268248,
+  "median_relative_position": {
+    "FN": 0.2872,
+    "FP": 0.3808
+  },
+  "profile_features": [
+    "worst texture",
+    "radius error",
+    "mean concave points",
+    "worst symmetry",
+    "worst concavity",
+    "worst radius",
+    "worst area",
+    "compactness error"
+  ],
+  "example_patients": {
+    "missed_malignant_1": 16,
+    "false_alarm_highest_p": 4,
+    "confident_malignant": 108,
+    "confident_benign": 91
+  }
+}

@@ -1,0 +1,31 @@
+feature,mean_abs_shap
+worst texture,1.14706
+radius error,0.82985
+mean concave points,0.77079
+worst symmetry,0.76308
+worst concavity,0.71904
+worst radius,0.70757
+worst area,0.67145
+compactness error,0.67108
+mean concavity,0.61307
+worst concave points,0.59001
+worst perimeter,0.57312
+area error,0.53233
+perimeter error,0.48727
+mean texture,0.38055
+fractal dimension error,0.37148
+concave points error,0.34528
+mean compactness,0.33825
+worst smoothness,0.33342
+mean area,0.32786
+texture error,0.29746
+mean radius,0.28188
+mean smoothness,0.27784
+mean perimeter,0.27644
+symmetry error,0.23092
+smoothness error,0.17616
+worst compactness,0.13167
+mean symmetry,0.12564
+mean fractal dimension,0.06152
+concavity error,0.05453
+worst fractal dimension,0.04065
