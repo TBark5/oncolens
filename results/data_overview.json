@@ -1,0 +1,14 @@
+{
+  "n_samples": 569,
+  "n_features": 30,
+  "n_malignant": 212,
+  "n_benign": 357,
+  "malignant_share": 0.3726,
+  "n_train": 455,
+  "n_test": 114,
+  "train_malignant_share": 0.3736,
+  "test_malignant_share": 0.3684,
+  "missing_values": 0,
+  "duplicate_rows": 0,
+  "validation_problems": []
+}
