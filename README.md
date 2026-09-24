@@ -26,13 +26,13 @@ studies the mistakes, and ships an interactive Streamlit app.
 
 ## Results
 
-All numbers below are generated from `results/` by `scripts/08_summary_tables.py`, and a test checks that
-this README matches them exactly.
+The two tables below are generated from `results/` by `scripts/08_summary_tables.py`, and a test checks that
+they match exactly. Every other number in this README was copied from files in `results/`.
 
 <!-- results:start -->
 **Model comparison** (training split, 455 samples, stratified 5-fold CV, mean ± std across folds):
 
-| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier | ROC AUC (default settings) |
+| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier (nested CV) | ROC AUC (default settings) |
 |---|---|---|---|---|---|
 | **Logistic regression** (chosen) | 0.9949 ± 0.0051 | 0.9353 ± 0.0432 | 0.9714 ± 0.0149 | 0.0232 | 0.9958 ± 0.0047 |
 | Random forest | 0.9863 ± 0.0075 | 0.9412 ± 0.0372 | 0.9582 ± 0.0162 | 0.0351 | 0.9880 ± 0.0073 |
@@ -84,15 +84,18 @@ matrices, learning curve, SHAP importance, beeswarm, four patient waterfalls, an
    (logistic regression, `C = 1.0`). The rule was fixed before looking at results: prefer logistic regression
    if it is within 0.005 of the best; it won outright, so the rule was not needed.
 4. **Calibration** (`04_calibration_threshold.py`): out-of-fold probabilities for the training split give an
-   honest reliability curve. Logistic regression had the lowest out-of-fold Brier score of the tuned models
-   (0.019). Its expected calibration error (0.017, 10 bins) was below the pre-set 0.05 limit (XGBoost's was
-   lower still, 0.012), so no recalibration was added.
+   honest reliability curve. These come from the model refit with the chosen hyperparameters (not nested),
+   so they are slightly optimistic; here the effect is tiny because the chosen `C = 1.0` is the default.
+   Logistic regression scored Brier 0.019 and expected calibration error 0.017 (10 bins), below the pre-set
+   0.05 limit, so no recalibration was added. The other models were similar (XGBoost had the lowest ECE, 0.012).
+   The Brier column in the results table above is a different, nested-CV estimate.
 5. **Threshold selection** (same script): among thresholds 0.01 to 0.99, pick the **highest** one whose
    out-of-fold recall is at least 0.98. Result: 0.20. On the training folds this changed the outcome from
    8 missed / 4 false alarms (at 0.5) to 3 missed / 14 false alarms (at 0.2).
 6. **Final test** (`05_final_test.py`): the chosen model and threshold are applied to the untouched test set once.
 7. **SHAP** (`06_explain_errors.py`): exact `LinearExplainer` values in log-odds, with the training split as
-   background. The contributions of one patient add up exactly to the model's output (verified in the tests).
+   background. The base value (average log-odds over the training data) plus one patient's contributions
+   equals the model's log-odds for that patient (verified in the tests).
    The most influential features on average are worst texture, radius error, and mean concave points.
 8. **Error analysis** (same script): the 17 out-of-fold training errors and 5 test errors are compared with
    correctly classified tumors. Summary in [`results/error_analysis.md`](results/error_analysis.md).
@@ -101,9 +104,10 @@ matrices, learning curve, SHAP importance, beeswarm, four patient waterfalls, an
 ### What the errors look like
 
 - Out-of-fold on the training split: 3 missed malignant tumors and 14 false alarms at threshold 0.2.
-- On the top 8 SHAP features, both error groups sit **between** the class averages. On a scale where
+- On most of the top 8 SHAP features, both error groups sit **between** the class averages. On a scale where
   0 = average correctly classified benign tumor and 1 = average correctly classified malignant tumor, the
-  median position is 0.29 for missed cancers and 0.38 for false alarms.
+  median position across those features is 0.29 for missed cancers and 0.38 for false alarms (a few
+  individual features fall outside 0 to 1; with only 3 missed cancers those averages are noisy).
 - Size tells the story: false alarms are larger than typical benign tumors (mean worst radius 16.22 vs 13.27)
   and missed cancers are smaller than typical malignant ones (15.79 vs 21.38).
 - The one malignant test tumor that was missed (test row 16, p = 0.061) had a low worst texture value that
@@ -185,6 +189,9 @@ docs/screenshots/          app screenshots
   digitized image. The project does not work on raw images, and its accuracy depends on that upstream step.
 - **Small test set.** 114 test samples (42 malignant). One misclassification moves recall by 2.4 points.
   Confidence intervals would be wide.
+- **Mild selection optimism.** Calibration and the threshold use out-of-fold predictions from the model with
+  already-chosen hyperparameters, on the same folds used for tuning. Nested CV avoids this for the model
+  comparison but not for these two steps. The effect should be small (the chosen `C = 1.0` is the default).
 - **Threshold choice is a value judgment.** 0.98 target recall was picked to illustrate the trade-off, not set
   by clinicians. The real costs of false negatives and false positives are not modeled.
 - **SHAP explains the model, not biology.** Many features are strongly correlated (radius, perimeter, area),

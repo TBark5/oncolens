@@ -1,6 +1,6 @@
 **Model comparison** (training split, 455 samples, stratified 5-fold CV, mean ± std across folds):
 
-| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier | ROC AUC (default settings) |
+| Model | ROC AUC (tuned, nested CV) | Recall at 0.5 | Accuracy at 0.5 | Brier (nested CV) | ROC AUC (default settings) |
 |---|---|---|---|---|---|
 | **Logistic regression** (chosen) | 0.9949 ± 0.0051 | 0.9353 ± 0.0432 | 0.9714 ± 0.0149 | 0.0232 | 0.9958 ± 0.0047 |
 | Random forest | 0.9863 ± 0.0075 | 0.9412 ± 0.0372 | 0.9582 ± 0.0162 | 0.0351 | 0.9880 ± 0.0073 |

@@ -111,7 +111,7 @@ def plot_pr_overlay(oof: pd.DataFrame) -> plt.Figure:
     return fig
 
 
-def plot_calibration(oof: pd.DataFrame, calib: pd.DataFrame, n_bins: int = 10) -> plt.Figure:
+def plot_calibration(oof: pd.DataFrame, calib: pd.DataFrame, chosen: str, n_bins: int = 10) -> plt.Figure:
     """Reliability diagram for every model plus a histogram of the chosen model's predictions."""
     fig, (ax, hist_ax) = plt.subplots(2, 1, figsize=(7.5, 7.5), height_ratios=[3, 1], sharex=True)
     y = oof["y_true"].to_numpy()
@@ -126,11 +126,11 @@ def plot_calibration(oof: pd.DataFrame, calib: pd.DataFrame, n_bins: int = 10) -
     ax.text(0.99, 0.03, "Middle bins hold only a few samples each (see histogram),\nso their points are noisy.",
             transform=ax.transAxes, ha="right", va="bottom", fontsize=9, color=INK_MUTED)
     ax.legend(loc="upper left", fontsize=9)
-    hist_ax.hist(oof["logistic_regression"], bins=20, range=(0, 1), color=MODEL_COLORS["logistic_regression"],
+    hist_ax.hist(oof[chosen], bins=20, range=(0, 1), color=MODEL_COLORS[chosen],
                  edgecolor=SURFACE)
     hist_ax.set_ylabel("Count")
     hist_ax.set_xlabel("Predicted probability of malignancy")
-    hist_ax.set_title("Logistic regression: most predictions are confident (near 0 or 1)", fontsize=10)
+    hist_ax.set_title(f"{DISPLAY_NAMES[chosen]} (chosen model): most predictions are near 0 or 1", fontsize=10)
     fig.tight_layout()
     return fig
 

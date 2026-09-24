@@ -6,7 +6,7 @@ claims across versions without checking them.
 ## Short (one line)
 
 - Built **OncoLens**, an explainable tumor-classification dashboard (scikit-learn, SHAP, Streamlit) that
-  catches 41 of 42 malignant cases on a held-out test set by tuning the decision threshold for recall.
+  catches 41 of 42 malignant cases on a 114-sample held-out test set by tuning the decision threshold for recall.
 
 ## Medium (two or three bullets)
 

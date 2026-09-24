@@ -79,7 +79,7 @@ def main() -> None:
     save_figure(plot_roc_overlay(oof), fig_dir / "06_roc_curves.png")
     save_figure(plot_pr_overlay(oof), fig_dir / "07_precision_recall_curves.png")
     calib = pd.read_csv(res / "calibration_oof.csv", index_col="model")
-    save_figure(plot_calibration(oof, calib), fig_dir / "08_calibration_curve.png")
+    save_figure(plot_calibration(oof, calib, chosen), fig_dir / "08_calibration_curve.png")
     sweep = pd.read_csv(res / "threshold_sweep_oof.csv")
     save_figure(plot_threshold_tradeoff(sweep, threshold), fig_dir / "09_threshold_tradeoff.png")
     save_figure(plot_confusion_matrices(confusion_panels(chosen, threshold)),

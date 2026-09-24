@@ -2,7 +2,7 @@
 
 All decisions (model, hyperparameters, threshold) were made earlier using only the
 training split. This script applies them to the test set once and records the result.
-The other three tuned models are scored too, for context only; they are not used to
+The other tuned models are scored too, for context only; they are not used to
 change any decision.
 """
 
