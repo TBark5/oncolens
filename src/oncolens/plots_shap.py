@@ -42,7 +42,7 @@ def plot_beeswarm(explanation: shap.Explanation, max_display: int = 15) -> plt.F
 def waterfall_rows(values: np.ndarray, data: np.ndarray, names: list[str], k: int) -> list[tuple[str, float]]:
     """Top-k contributions (largest first) plus one aggregated row for the remaining features."""
     order = np.argsort(-np.abs(values))
-    rows = [(f"{names[i]} = {data[i]:.3g}", float(values[i])) for i in order[:k]]
+    rows = [(f"{names[i]} = {data[i]:.4g}", float(values[i])) for i in order[:k]]
     rest = order[k:]
     if len(rest):
         rows.append((f"{len(rest)} other features", float(values[rest].sum())))
@@ -58,30 +58,34 @@ def plot_waterfall(values: np.ndarray, data: np.ndarray, names: list[str], base:
     """
     rows = waterfall_rows(values, data, names, k)[::-1]
     fig, ax = plt.subplots(figsize=(9, 0.42 * len(rows) + 2.0))
+    ends = base + np.cumsum([v for _, v in rows])
+    final = float(ends[-1])
+    cut = float(np.log(threshold / (1 - threshold))) if threshold is not None else None
+    lo = min(base, float(ends.min()), cut if cut is not None else base)
+    hi = max(base, float(ends.max()), cut if cut is not None else base)
+    pad = 0.12 * (hi - lo or 1.0)
+    ax.axvline(base, color=INK_MUTED, linestyle=":", linewidth=1.2, zorder=1)
+    ax.axvline(final, color=INK_SECONDARY, linestyle="--", linewidth=1.2, zorder=1)
     position = base
-    span = max(abs(v) for _, v in rows) or 1.0
     for y, (label, value) in enumerate(rows):
         color = MALIGNANT_COLOR if value > 0 else BENIGN_COLOR
-        ax.barh(y, value, left=position, color=color, height=0.62, edgecolor=SURFACE, linewidth=1.5)
-        pad = 0.02 * span * (1 if value >= 0 else -1)
-        ax.text(position + value + pad, y, f"{value:+.2f}", va="center",
-                ha="left" if value >= 0 else "right", fontsize=9, color=INK_SECONDARY)
+        ax.barh(y, value, left=position, color=color, height=0.62, edgecolor=SURFACE, linewidth=1.5, zorder=2)
+        nudge = 0.015 * (hi - lo) * (1 if value >= 0 else -1)
+        ax.text(position + value + nudge, y, f"{value:+.2f}", va="center", ha="left" if value >= 0 else "right",
+                fontsize=9, color=INK_SECONDARY, zorder=3,
+                bbox={"facecolor": SURFACE, "edgecolor": "none", "pad": 0.5})
         position += value
-    final = position
     ax.set_yticks(range(len(rows)), [label for label, _ in rows], fontsize=9.5)
-    ax.axvline(base, color=INK_MUTED, linestyle=":", linewidth=1.2)
-    ax.axvline(final, color=INK_SECONDARY, linestyle="--", linewidth=1.2)
     top = len(rows) - 0.4
-    if threshold is not None:
-        cut = float(np.log(threshold / (1 - threshold)))
-        ax.axvline(cut, color=THRESHOLD_COLOR, linewidth=1.4)
+    if cut is not None:
+        ax.axvline(cut, color=THRESHOLD_COLOR, linewidth=1.4, zorder=1)
         ax.text(cut, top + 0.1, f" decision threshold (p = {threshold:g})", color=THRESHOLD_COLOR,
                 fontsize=9, va="bottom")
-    ax.text(base, -0.75, f"base value {base:.2f}\n(p = {sigmoid(base):.2f})", ha="center", va="top",
-            fontsize=9, color=INK_MUTED)
-    ax.text(final, -0.75, f"this patient {final:.2f}\n(p = {sigmoid(final):.3f})", ha="center", va="top",
-            fontsize=9, color=INK_SECONDARY)
-    ax.set_ylim(-1.9, top + 0.9)
+    ax.text(0.99, 0.01, f"base value {base:.2f} (p = {sigmoid(base):.2f})   ->   "
+            f"this patient {final:.2f} (p = {sigmoid(final):.3f})", transform=ax.transAxes, ha="right",
+            va="bottom", fontsize=9.5, color=INK_SECONDARY, bbox={"facecolor": SURFACE, "edgecolor": "none"})
+    ax.set_xlim(lo - pad, hi + pad)
+    ax.set_ylim(-1.3, top + 0.9)
     ax.set_xlabel("Log-odds of malignancy (orange = toward malignant, blue = toward benign)")
     ax.set_title(title)
     ax.grid(axis="y", visible=False)
