@@ -20,10 +20,10 @@ Good morning. Everything in the task list is done and committed. Details below.
 
 - **Dockerfile was never built.** Docker is not installed on this machine. It follows standard practice, but
   run `docker build -t oncolens .` once before you mention it.
-- **GitHub Actions CI has never run.** There is no GitHub remote yet. It will run on your first push; check the
-  Actions tab.
-- The pipeline was verified on Windows / Python 3.14.5 only. Linux or other Python versions may give slightly
-  different last digits (CI covers 3.12 and 3.13).
+- **GitHub Actions CI passes** on Linux with Python 3.12 and 3.13 (tests plus a clean pipeline rebuild):
+  https://github.com/TBark5/oncolens/actions
+- Developed and fully verified locally on Windows / Python 3.14.5. CI confirms the tests and pipeline also run on Linux
+  with Python 3.12 and 3.13; the last digits of some results may differ slightly across platforms.
 - Nothing is BLOCKED and there are no known bugs.
 
 ## Final numbers (from `results/`)
@@ -51,7 +51,7 @@ bash scripts/check_fresh_env.sh        # full from-scratch check in a new venv (
 python scripts/capture_screenshots.py --gif   # refresh screenshots and GIF (needs requirements-dev.txt)
 ```
 
-To publish: create an empty GitHub repo, then `git remote add origin <url>` and `git push -u origin main`.
+Repository: https://github.com/TBark5/oncolens (public).
 
 ## 5 things to understand before presenting this
 

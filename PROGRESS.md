@@ -27,7 +27,7 @@ classifier (Wisconsin dataset) with phases 0-7, then stretch goals, then MORNING
 - Nothing. Project complete.
 
 ## Next (optional ideas, not started)
-- Push to GitHub and confirm CI passes; build the Docker image once (Docker was not available here).
+- Build the Docker image once (Docker was not available here). Repo: https://github.com/TBark5/oncolens (CI passing).
 - Bootstrap confidence intervals for test metrics; cost-based threshold selection.
 
 ## Known bugs

@@ -1,5 +1,7 @@
 # OncoLens: Explainable Tumor Classification Dashboard
 
+[![CI](https://github.com/TBark5/oncolens/actions/workflows/ci.yml/badge.svg)](https://github.com/TBark5/oncolens/actions/workflows/ci.yml)
+
 An end-to-end, reproducible machine-learning project on the public **Wisconsin Diagnostic Breast Cancer**
 dataset (bundled with scikit-learn). It compares five classifiers with leakage-safe cross-validation,
 picks a decision threshold that favors catching malignant cases, explains every prediction with SHAP,
