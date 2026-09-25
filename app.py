@@ -6,7 +6,6 @@ Educational demo on a public dataset. Not a medical device.
 
 from __future__ import annotations
 
-import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -30,7 +29,7 @@ from oncolens.data import load_splits, split_features_target
 from oncolens.io_utils import read_json
 
 N_TOP_SLIDERS = 8
-N_SHAP_ROWS = 10
+N_SHAP_ROWS = 7
 GROUP_TITLES = {"mean": "Mean values", "error": "Standard errors", "worst": "Worst (largest) values"}
 PRESET_LABELS = {
     "Median": "Training median (all tumors)",
@@ -48,71 +47,93 @@ st.set_page_config(page_title="OncoLens", page_icon="🔬", layout="wide", initi
 
 CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 :root {
   --ol-ink: #1a1a18; --ol-ink-2: #45443f; --ol-muted: #6b6a64;
-  --ol-line: #e4e2da; --ol-ground: #f6f5f1; --ol-card: #ffffff;
-  --ol-benign: #1c5cab; --ol-malignant: #b8481c;
+  --ol-line: #e4e2da; --ol-ground: #f6f5f1; --ol-card: #ffffff; --ol-track: #eceae4;
+  --ol-serif: 'Fraunces', Georgia, serif; --ol-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 .stApp { background: var(--ol-ground); }
-.block-container { padding-top: 2.2rem; max-width: 1280px; }
+.block-container { padding-top: 2rem; padding-left: 3rem; padding-right: 3rem; max-width: 1180px; }
 header[data-testid="stHeader"] { background: transparent; }
-h1, h2, h3 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600 !important; letter-spacing: -0.01em; color: var(--ol-ink); }
+h1, h2, h3, h4 { font-family: var(--ol-serif) !important; font-weight: 600 !important; letter-spacing: -0.01em; color: var(--ol-ink); }
 
 /* Sidebar */
 section[data-testid="stSidebar"] { background: var(--ol-card); border-right: 1px solid var(--ol-line); }
 section[data-testid="stSidebar"] .block-container { padding-top: 1.5rem; }
-section[data-testid="stSidebar"] [data-testid="stSlider"] label p { font-size: 0.85rem; color: var(--ol-ink-2); }
-section[data-testid="stSidebar"] [role="radiogroup"] { flex-wrap: nowrap; width: 100%; }
-section[data-testid="stSidebar"] [role="radiogroup"] button { flex: 1 1 0; min-height: 40px; padding-left: 4px; padding-right: 4px; }
+section[data-testid="stSidebar"] [data-testid="stSlider"] label p { font-size: 0.82rem; color: var(--ol-ink); }
+section[data-testid="stSidebar"] [data-testid="stSliderThumbValue"] p { font-family: var(--ol-mono); font-size: 0.78rem; color: #1c5cab; }
+section[data-testid="stSidebar"] [role="radiogroup"] { flex-wrap: nowrap; width: 100%; gap: 4px; padding: 4px; background: #f0efea; border-radius: 10px; }
+section[data-testid="stSidebar"] [role="radiogroup"] button { flex: 1 1 0; min-height: 36px; padding: 0 4px; border: 0 !important; border-radius: 7px !important; background: transparent; color: var(--ol-ink-2); }
+section[data-testid="stSidebar"] [role="radiogroup"] button[aria-checked="true"] { background: var(--ol-card) !important; box-shadow: 0 1px 2px rgba(0,0,0,0.08); color: var(--ol-ink) !important; }
+section[data-testid="stSidebar"] [role="radiogroup"] button[aria-checked="true"] p { font-weight: 600; color: var(--ol-ink); }
 section[data-testid="stSidebar"] [data-testid="stExpander"] details { border-radius: 10px; border-color: var(--ol-line); }
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary p { font-size: 0.82rem; }
 
-/* Brand + labels */
-.ol-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
-.ol-brand-name { font-family: 'Fraunces', Georgia, serif; font-size: 1.45rem; font-weight: 600; line-height: 1.1; color: var(--ol-ink); }
-.ol-brand-sub { font-size: 0.78rem; color: var(--ol-muted); }
-.ol-eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ol-muted); margin: 0.9rem 0 0.35rem; }
+.ol-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 0.6rem; }
+.ol-brand-name { font-family: var(--ol-serif); font-size: 1.4rem; font-weight: 600; line-height: 1.1; color: var(--ol-ink); letter-spacing: -0.01em; }
+.ol-brand-sub { font-size: 0.75rem; color: var(--ol-muted); }
+.ol-eyebrow { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ol-muted); margin: 1rem 0 0.4rem; }
 
-/* Page header */
-.ol-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 0.4rem; }
-.ol-hero h1 { font-size: 2.3rem; margin: 0; padding: 0; line-height: 1.15; }
-.ol-hero p { margin: 0.35rem 0 0; color: var(--ol-ink-2); font-size: 1rem; max-width: 640px; }
-.ol-pill { display: inline-block; padding: 7px 14px; border-radius: 999px; background: #fdf3e2; color: #7a4a00; font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
+/* Top bar: pill tabs on the left, disclaimer on the right */
+.ol-topbar { position: relative; height: 0; z-index: 2; }
+.ol-pill { position: absolute; right: 0; top: 8px; padding: 8px 14px; border-radius: 999px; background: #fdf3e2; color: #7a4a00; font-size: 0.75rem; font-weight: 500; white-space: nowrap; }
+.stTabs [role="tablist"] { gap: 4px; padding: 4px; background: #ebe9e3; border-radius: 12px; width: fit-content; border: 0; }
+.stTabs [data-testid="stTab"] { height: 40px; padding: 0 18px; border-radius: 9px; background: transparent; }
+.stTabs [data-testid="stTab"] p { font-size: 0.9rem; color: var(--ol-ink-2); }
+.stTabs [data-testid="stTab"][aria-selected="true"] { background: var(--ol-card); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.stTabs [data-testid="stTab"][aria-selected="true"] p { font-weight: 600; color: var(--ol-ink); }
+.stTabs .react-aria-SelectionIndicator { display: none; }
+.stTabs [data-testid="stTabPanel"] { padding-top: 1.4rem; }
 
-/* Tabs */
-.stTabs [data-baseweb="tab"] p { font-size: 0.95rem; }
-.stTabs [aria-selected="true"] p { font-weight: 600; }
-.stTabs [data-baseweb="tab-panel"] { padding-top: 1.2rem; }
+/* Cards: keyed containers created with card() */
+[class*="st-key-card-"] { background: var(--ol-card); border-radius: 18px !important; border: 1px solid var(--ol-line) !important; padding: 1.4rem 1.6rem !important; }
+[data-testid="stMetricLabel"] p { font-size: 0.68rem !important; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ol-muted); }
+[data-testid="stMetricValue"] { font-family: var(--ol-serif); font-weight: 600; color: var(--ol-ink); }
 
-/* Cards: bordered containers created with card() */
-[class*="st-key-card-"] { background: var(--ol-card); border-radius: 18px !important; border: 1px solid var(--ol-line) !important;
-  padding: 1.25rem 1.4rem !important; box-shadow: 0 1px 2px rgba(26, 26, 24, 0.04); }
-
-/* Metrics */
-[data-testid="stMetricLabel"] p { font-size: 0.7rem !important; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ol-muted); }
-[data-testid="stMetricValue"] { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: var(--ol-ink); }
-.st-key-ol-verdict [data-testid="stMetricValue"] { font-size: 3rem; line-height: 1.1; }
-
-/* Probability bar */
-.ol-bar { position: relative; height: 14px; border-radius: 7px; background: #eceae4; margin: 6px 0 4px; }
+/* Prediction tab (plain HTML, mirrors the design mockup) */
+.ol-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
+.ol-card { background: var(--ol-card); border: 1px solid var(--ol-line); border-radius: 18px; padding: 28px 32px; box-sizing: border-box; }
+.ol-verdict { grid-column: span 2; display: flex; flex-direction: column; gap: 22px; }
+.ol-stack { display: flex; flex-direction: column; gap: 20px; }
+.ol-stat { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 22px 24px; }
+.ol-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ol-muted); }
+.ol-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.ol-col { display: flex; flex-direction: column; gap: 6px; }
+.ol-big { font-family: var(--ol-serif); font-size: 3.5rem; font-weight: 600; line-height: 1; letter-spacing: -0.01em; }
+.ol-prob { font-family: var(--ol-mono); font-size: 2.5rem; font-weight: 500; line-height: 1; color: var(--ol-ink); text-align: right; }
+.ol-stat-value { font-family: var(--ol-serif); font-size: 2.1rem; font-weight: 600; line-height: 1.1; color: var(--ol-ink); }
+.ol-stat-note { font-size: 0.82rem; color: var(--ol-ink-2); }
+.ol-bar { position: relative; height: 14px; border-radius: 7px; background: var(--ol-track); }
 .ol-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
 .ol-bar-cut { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--ol-ink); }
-.ol-bar-scale { position: relative; height: 20px; font-size: 0.75rem; color: var(--ol-muted); }
-.ol-bar-scale span { position: absolute; }
-.ol-note { font-size: 0.88rem; line-height: 1.55; color: var(--ol-ink-2); margin: 0.4rem 0 0; }
-
-/* Contribution list */
-.ol-drivers { display: flex; flex-direction: column; gap: 8px; }
-.ol-driver { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: var(--ol-ground); font-size: 0.88rem; }
-.ol-driver b { font-weight: 600; color: var(--ol-ink); }
-.ol-driver .v { color: var(--ol-muted); font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; }
-.ol-driver .s { font-family: 'IBM Plex Mono', monospace; font-weight: 500; white-space: nowrap; }
-.ol-legend { display: flex; gap: 16px; font-size: 0.78rem; color: var(--ol-ink-2); }
+.ol-bar-scale { position: relative; height: 18px; margin-top: 8px; font-size: 0.75rem; color: var(--ol-muted); }
+.ol-bar-scale span { position: absolute; white-space: nowrap; }
+.ol-note { margin: 0; font-size: 0.88rem; line-height: 1.55; color: var(--ol-ink-2); }
+.ol-shap { display: flex; flex-direction: column; gap: 20px; }
+.ol-shap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.ol-shap-head h2 { margin: 0; padding: 0; font-size: 1.5rem; }
+.ol-legend { display: flex; gap: 18px; font-size: 0.75rem; color: var(--ol-ink-2); }
 .ol-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.ol-bars { display: flex; flex-direction: column; gap: 10px; }
+.ol-bar-row { display: grid; grid-template-columns: 260px minmax(0, 1fr) 64px; gap: 16px; align-items: center; font-size: 0.82rem; }
+.ol-bar-row > span:first-child { text-align: right; color: var(--ol-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ol-track { position: relative; height: 22px; background: var(--ol-ground); border-radius: 4px; }
+.ol-track > div { position: absolute; left: 0; top: 3px; bottom: 3px; border-radius: 3px; }
+.ol-val { font-family: var(--ol-mono); color: var(--ol-ink); }
+.ol-foot { margin: 0; font-size: 0.82rem; color: var(--ol-muted); }
+@media (max-width: 900px) {
+  .ol-grid { grid-template-columns: minmax(0, 1fr); }
+  .ol-verdict { grid-column: auto; }
+  .ol-bar-row { grid-template-columns: 140px minmax(0, 1fr) 52px; }
+  .ol-big { font-size: 2.6rem; } .ol-prob { font-size: 1.8rem; }
+  .ol-pill { position: static; display: inline-block; margin-bottom: 12px; }
+  .ol-topbar { height: auto; }
+}
 
-/* About cards */
-.ol-about h4 { font-family: 'Fraunces', Georgia, serif; font-size: 1.1rem; margin: 0 0 0.3rem; }
+.ol-about h4 { font-size: 1.1rem; margin: 0 0 0.3rem; }
 .ol-about p { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--ol-ink-2); }
-.ol-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--ol-line); font-size: 0.78rem; color: var(--ol-muted); }
+.ol-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--ol-line); font-size: 0.75rem; color: var(--ol-muted); }
 </style>
 """
 
@@ -186,10 +207,9 @@ def render_sidebar(ranges: pd.DataFrame, ordered: list[str], preset_values: dict
         st.markdown('<div class="ol-eyebrow">Most influential measurements</div>', unsafe_allow_html=True)
         for name in ordered[:N_TOP_SLIDERS]:
             slider(name)
-        st.markdown('<div class="ol-eyebrow">All other measurements</div>', unsafe_allow_html=True)
         for group in FEATURE_GROUPS:
             rest = [f for f in ordered[N_TOP_SLIDERS:] if feature_group(f) == group]
-            with st.expander(f"{GROUP_TITLES[group]} · {len(rest)}"):
+            with st.expander(f"{GROUP_TITLES[group]} · {len(rest)} more"):
                 for name in rest:
                     slider(name)
     return pd.DataFrame([{name: st.session_state[name] for name in ranges.index}])
@@ -199,64 +219,25 @@ def probability_bar(p: float, threshold: float, color: str) -> str:
     """HTML bar for P(malignant) with a marker at the decision threshold."""
     fill = min(max(p, 0.0), 1.0) * 100
     cut = threshold * 100
-    return (f'<div class="ol-bar"><div class="ol-bar-fill" style="width:{fill:.1f}%;background:{color}"></div>'
+    return (f'<div><div class="ol-bar"><div class="ol-bar-fill" style="width:{fill:.1f}%;background:{color}"></div>'
             f'<div class="ol-bar-cut" style="left:{cut:.1f}%"></div></div>'
             f'<div class="ol-bar-scale"><span style="left:0">0%</span>'
             f'<span style="left:{cut:.1f}%;transform:translateX(-50%);color:var(--ol-ink);font-weight:500">'
-            f'threshold {threshold:.0%}</span><span style="right:0">100%</span></div>')
+            f'threshold {threshold:.0%}</span><span style="right:0">100%</span></div></div>')
 
 
-def shap_chart(values: np.ndarray, data: np.ndarray, names: list[str], base: float, threshold: float) -> alt.Chart:
-    """Interactive SHAP waterfall in log-odds: top contributions plus one row for the rest."""
+def shap_bars(values: np.ndarray, data: np.ndarray, names: list[str]) -> str:
+    """HTML rows: one bar per top contribution, length = |SHAP|, color = direction."""
     rows = waterfall_rows(values, data, names, N_SHAP_ROWS)
-    ends = base + np.cumsum([v for _, v in rows[::-1]])[::-1]  # accumulate bottom-up
-    df = pd.DataFrame({
-        "feature": [label for label, _ in rows],
-        "shap": [v for _, v in rows],
-        "end": ends,
-    })
-    df["start"] = df["end"] - df["shap"]
-    df["direction"] = np.where(df["shap"] > 0, "toward malignant", "toward benign")
-    df["label"] = df["shap"].map(lambda v: f"{v:+.2f}")
-    df["label_x"] = np.where(df["shap"] > 0, df[["start", "end"]].max(axis=1), df[["start", "end"]].min(axis=1))
-    df["align"] = np.where(df["shap"] > 0, "left", "right")
-    order = df["feature"].tolist()
-    final = float(ends[0])
-    cut = float(np.log(threshold / (1 - threshold)))
-
-    y = alt.Y("feature:N", sort=order, title=None, axis=alt.Axis(labelLimit=260, labelFontSize=12,
-                                                                 labelColor="#45443f", ticks=False, domain=False))
-    color = alt.Color("direction:N", legend=None, scale=alt.Scale(
-        domain=["toward malignant", "toward benign"], range=[MALIGNANT_COLOR, BENIGN_COLOR]))
-    bars = alt.Chart(df).mark_bar(cornerRadius=3, height=18).encode(
-        x=alt.X("start:Q", title="Log-odds of malignancy",
-                axis=alt.Axis(grid=True, gridColor="#eceae4", domain=False, labelColor="#6b6a64",
-                              titleColor="#6b6a64", titleFontWeight="normal")),
-        x2="end:Q", y=y, color=color,
-        tooltip=[alt.Tooltip("feature:N", title="Feature"), alt.Tooltip("shap:Q", title="SHAP (log-odds)", format="+.3f"),
-                 alt.Tooltip("direction:N", title="Pushes")],
-    )
-    text_pos = alt.Chart(df[df["shap"] > 0]).mark_text(align="left", dx=5, fontSize=11, color="#45443f").encode(
-        x="label_x:Q", y=y, text="label:N")
-    text_neg = alt.Chart(df[df["shap"] <= 0]).mark_text(align="right", dx=-5, fontSize=11, color="#45443f").encode(
-        x="label_x:Q", y=y, text="label:N")
-    refs = pd.DataFrame({
-        "x": [base, final, cut],
-        "what": [f"base value {base:.2f}", f"this input {final:.2f} (p = {1 / (1 + np.exp(-final)):.3f})",
-                 f"decision threshold (p = {threshold:g})"],
-        "dash": ["dot", "dash", "solid"],
-    })
-    rules = alt.Chart(refs).mark_rule(strokeWidth=1.4).encode(
-        x="x:Q",
-        strokeDash=alt.StrokeDash("dash:N", legend=None, scale=alt.Scale(
-            domain=["dot", "dash", "solid"], range=[[2, 3], [6, 4], [1, 0]])),
-        color=alt.Color("dash:N", legend=None, scale=alt.Scale(
-            domain=["dot", "dash", "solid"], range=["#898781", "#45443f", "#4a3aa7"])),
-        tooltip=[alt.Tooltip("what:N", title="Reference")],
-    )
-    return (rules + bars + text_pos + text_neg).resolve_scale(color="independent").properties(
-        height=34 * len(df) + 30).configure_view(strokeWidth=0).configure(
-        background="transparent", font="'IBM Plex Sans', system-ui, sans-serif")
+    scale = max(abs(v) for _, v in rows) or 1.0
+    html = []
+    for label, v in rows:
+        color = MALIGNANT_COLOR if v > 0 else BENIGN_COLOR
+        direction = "toward malignant" if v > 0 else "toward benign"
+        html.append(f'<div class="ol-bar-row" title="{label}: {v:+.3f} log-odds, {direction}"><span>{label}</span>'
+                    f'<div class="ol-track"><div style="width:{abs(v) / scale * 100:.1f}%;background:{color}"></div></div>'
+                    f'<span class="ol-val">{v:+.2f}</span></div>')
+    return "".join(html)
 
 
 def render_prediction(model, explainer, row: pd.DataFrame, threshold: float) -> None:
@@ -266,50 +247,44 @@ def render_prediction(model, explainer, row: pd.DataFrame, threshold: float) -> 
     ink = MALIGNANT_INK if pred.is_malignant else BENIGN_INK
     final = get_final_metrics()
 
-    left, right = st.columns([2, 1], gap="medium")
-    with card(left, "verdict"):
-        st.markdown(f"<style>.st-key-ol-verdict [data-testid='stMetricValue'] {{ color: {ink}; }}</style>",
-                    unsafe_allow_html=True)
-        c1, c2 = st.columns([3, 2])
-        with c1.container(key="ol-verdict"):
-            st.metric("Model output", pred.label)
-        c2.metric("P(malignant)", format_probability(pred.p_malignant))
-        st.markdown(probability_bar(pred.p_malignant, threshold, accent), unsafe_allow_html=True)
-        st.markdown(f'<p class="ol-note">Flagged as malignant when P(malignant) ≥ {threshold:g}. The threshold was '
-                    "lowered from 0.5 to catch more malignant cases, at the cost of more false alarms. "
-                    f"Probability of the predicted class: <b>{format_probability(pred.confidence)}</b>.</p>",
-                    unsafe_allow_html=True)
-    with right:
-        if final:
-            m = final["metrics_at_chosen_threshold"]
-            with card(st, "recall"):
-                st.metric("Test recall (malignant)", f"{m['recall']:.1%}")
-                st.caption(f"{m['tp']} of {m['tp'] + m['fn']} caught on held-out data")
-            with card(st, "auc"):
-                st.metric("Test ROC AUC", f"{m['roc_auc']:.3f}")
-                st.caption(f"{final['model'].replace('_', ' ').capitalize()}, {final['n_test']} tumors")
+    stats = ""
+    if final:
+        m = final["metrics_at_chosen_threshold"]
+        stats = (
+            '<div class="ol-stack">'
+            '<div class="ol-card ol-stat"><span class="ol-label">Test recall (malignant)</span>'
+            f'<span class="ol-stat-value">{m["recall"]:.1%}</span>'
+            f'<span class="ol-stat-note">{m["tp"]} of {m["tp"] + m["fn"]} caught on held-out data</span></div>'
+            '<div class="ol-card ol-stat"><span class="ol-label">Test ROC AUC</span>'
+            f'<span class="ol-stat-value">{m["roc_auc"]:.3f}</span>'
+            f'<span class="ol-stat-note">{final["model"].replace("_", " ").capitalize()}, '
+            f'{final["n_test"]} tumors</span></div></div>'
+        )
+    st.markdown(
+        '<div class="ol-grid"><div class="ol-card ol-verdict"><div class="ol-row">'
+        f'<div class="ol-col"><span class="ol-label">Model output</span>'
+        f'<span class="ol-big" data-verdict="{pred.label}" style="color:{ink}">{pred.label}</span></div>'
+        f'<div class="ol-col" style="align-items:flex-end"><span class="ol-label">P(malignant)</span>'
+        f'<span class="ol-prob">{format_probability(pred.p_malignant)}</span></div></div>'
+        f'{probability_bar(pred.p_malignant, threshold, accent)}'
+        f'<p class="ol-note">Flagged as malignant when P(malignant) ≥ {threshold:g}. The threshold was lowered from '
+        "0.5 to catch more malignant cases, at the cost of more false alarms. Probability of the predicted class: "
+        f"<b>{format_probability(pred.confidence)}</b>.</p></div>{stats}</div>",
+        unsafe_allow_html=True,
+    )
 
     values, data, base = explain_one(explainer, row)
-    chart_col, list_col = st.columns([2, 1], gap="medium")
-    with card(chart_col, "shap"):
-        st.markdown("### Why this prediction?")
-        st.markdown(f'<div class="ol-legend"><span><i style="background:{MALIGNANT_COLOR}"></i>toward malignant</span>'
-                    f'<span><i style="background:{BENIGN_COLOR}"></i>toward benign</span></div>',
-                    unsafe_allow_html=True)
-        st.altair_chart(shap_chart(values, data, list(row.columns), base, threshold), width="stretch")
-        st.caption("SHAP contributions in log-odds, accumulating from the base value (average over the training "
-                   "data) to this input. Hover a bar for details. Correlated inputs share credit, so one bar is "
-                   "not a causal effect.")
-    with card(list_col, "drivers"):
-        st.markdown("### Top drivers")
-        top = pd.DataFrame({"feature": row.columns, "value": data, "shap": values})
-        top = top.reindex(top["shap"].abs().sort_values(ascending=False).index).head(5)
-        items = "".join(
-            f'<div class="ol-driver"><div><b>{r.feature}</b><br><span class="v">= {r.value:.4g}</span></div>'
-            f'<span class="s" style="color:{MALIGNANT_INK if r.shap > 0 else BENIGN_INK}">{r.shap:+.2f}</span></div>'
-            for r in top.itertuples())
-        st.markdown(f'<div class="ol-drivers">{items}</div>', unsafe_allow_html=True)
-        st.caption("Positive values push toward malignant, negative toward benign (log-odds).")
+    final_logit = base + float(values.sum())
+    st.markdown(
+        '<div class="ol-card ol-shap"><div class="ol-shap-head"><h2>Why this prediction?</h2>'
+        f'<div class="ol-legend"><span><i style="background:{MALIGNANT_COLOR}"></i>toward malignant</span>'
+        f'<span><i style="background:{BENIGN_COLOR}"></i>toward benign</span></div></div>'
+        f'<div class="ol-bars">{shap_bars(values, data, list(row.columns))}</div>'
+        f'<p class="ol-foot">SHAP contributions in log-odds, from the base value {base:.2f} (average over the '
+        f"training data) to this input's {final_logit:.2f}. Hover a row for details. Correlated inputs share "
+        "credit, so one bar is not a causal effect.</p></div>",
+        unsafe_allow_html=True,
+    )
 
 
 def render_performance() -> None:
@@ -380,11 +355,8 @@ def main() -> None:
         st.session_state["preset"] = "Median"
     row = render_sidebar(ranges, ordered, preset_values)
 
-    st.markdown('<div class="ol-hero"><div><h1>Explainable tumor classification</h1>'
-                "<p>Adjust the cell-nucleus measurements in the sidebar. The model predicts benign or malignant "
-                "and shows which measurements drove that call.</p></div>"
-                '<span class="ol-pill">Educational demo · not for diagnosis</span></div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="ol-topbar"><span class="ol-pill">Educational demo · not for diagnosis</span>'
+                '</div>', unsafe_allow_html=True)
 
     model, explainer = get_model_and_explainer()
     threshold = load_threshold()
