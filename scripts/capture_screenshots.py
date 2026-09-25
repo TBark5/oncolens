@@ -54,15 +54,14 @@ def streamlit_server(port: int = PORT) -> Iterator[str]:
 def wait_for_app(page: Page) -> None:
     """Wait until the prediction metrics and the SHAP chart have rendered."""
     page.get_by_text("Model output").first.wait_for(timeout=120_000)
-    page.locator("[data-testid='stImage'], [data-testid='stPyplot'] img, img").first.wait_for(timeout=120_000)
+    page.locator(".ol-bars").first.wait_for(
+        timeout=120_000)
     page.wait_for_timeout(1500)
 
 
 def load_preset(page: Page, label: str) -> None:
-    """Pick a preset in the sidebar selectbox and apply it."""
-    page.locator("[data-testid='stSidebar'] [data-testid='stSelectbox']").first.click()
-    page.get_by_role("option", name=label).click()
-    page.get_by_role("button", name="Load these values").click()
+    """Click a preset ("Median", "Benign", "Malignant") in the sidebar's segmented control."""
+    page.locator("[data-testid='stSidebar']").get_by_role("radio", name=label, exact=True).click()
     page.wait_for_timeout(2500)
     wait_for_app(page)
 
@@ -75,7 +74,7 @@ def frame(page: Page, width: int = 960) -> Image.Image:
 
 def record_gif(page: Page, steps: int = 8, keys_per_step: int = 12) -> None:
     """Start from the typical benign preset, then raise "worst texture" step by step."""
-    load_preset(page, "Typical benign (median of benign)")
+    load_preset(page, "Benign")
     frames = [frame(page)]
     thumb = page.get_by_role("slider", name="worst texture").first
     thumb.focus()
@@ -92,17 +91,20 @@ def record_gif(page: Page, steps: int = 8, keys_per_step: int = 12) -> None:
 def main() -> None:
     """Capture the prediction view (two presets) and the performance tab."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--browser", default="chrome", choices=["chrome", "msedge"])
+    parser.add_argument("--browser", default="chrome", choices=["chrome", "msedge", "chromium"],
+                        help="chromium = Playwright's bundled Chromium instead of an installed browser")
     parser.add_argument("--gif", action="store_true", help="also record docs/demo.gif")
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with streamlit_server() as url, sync_playwright() as pw:
-        browser = pw.chromium.launch(channel=args.browser, headless=True)
+        channel = None if args.browser == "chromium" else args.browser
+        browser = pw.chromium.launch(channel=channel, headless=True)
         page = browser.new_page(viewport={"width": 1440, "height": 1500}, device_scale_factor=1.5)
         page.goto(url)
         wait_for_app(page)
+        load_preset(page, "Benign")
         page.screenshot(path=OUT_DIR / "app_prediction_benign.png", full_page=True)
-        load_preset(page, "Typical malignant (median of malignant)")
+        load_preset(page, "Malignant")
         page.screenshot(path=OUT_DIR / "app_prediction_malignant.png", full_page=True)
         page.get_by_role("tab", name="Model performance").click()
         page.wait_for_timeout(2500)
