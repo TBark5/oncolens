@@ -142,8 +142,9 @@ streamlit run app.py
    pick this repo and branch, and set the main file to `app.py`.
 2. Under **Advanced settings**, choose **Python 3.12 or newer** (the pinned requirements need it).
 3. Deploy. `requirements.txt` installs everything, `.streamlit/config.toml` sets the theme and fonts, and the
-   committed `results/` and `figures/` feed the app. `models/` is not committed, so the first visit re-fits the
-   logistic regression (a few seconds), and later visits reuse it.
+   committed `results/`, `figures/` and `models/final_model.joblib` feed the app, so it never re-trains on startup.
+   The app uses about 270 MB of memory: it computes the (exact, linear) SHAP values itself and does not import
+   `shap` or `xgboost`, which the offline pipeline still uses.
 
 ## How to run
 
