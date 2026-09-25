@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -61,3 +62,29 @@ def test_app_runs_without_exceptions() -> None:
     texture = at.slider(key="worst texture")
     texture.set_value(float(texture.max)).run()
     assert not at.exception
+
+
+def test_lightweight_linear_shap_matches_shap(train_xy) -> None:
+    from oncolens.app_support import explain_one, make_explainer
+    from oncolens.explain import build_explainer, explain_rows
+
+    X, _ = train_xy
+    model = load_or_train_model()
+    rows = X.iloc[:5]
+    reference = explain_rows(build_explainer(model, X), rows)
+    fast = make_explainer(model, X)
+    for i in range(len(rows)):
+        values, data, base = explain_one(fast, rows.iloc[[i]])
+        assert values == pytest.approx(reference.values[i], abs=1e-9)
+        assert data == pytest.approx(reference.data[i])
+        assert base == pytest.approx(float(np.ravel(reference.base_values)[i]), abs=1e-9)
+
+
+def test_app_helpers_do_not_import_heavy_libraries() -> None:
+    """shap and xgboost add hundreds of MB; the hosted app must not load them."""
+    import subprocess
+    import sys
+
+    code = ("import sys, oncolens.app_support; "
+            "assert not {'shap', 'xgboost'} & set(sys.modules), sorted({'shap', 'xgboost'} & set(sys.modules))")
+    subprocess.run([sys.executable, "-c", code], check=True)
