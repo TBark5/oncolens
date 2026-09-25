@@ -24,12 +24,10 @@ from oncolens.app_support import (
     presets,
     slider_ranges,
     training_features,
+    waterfall_rows,
 )
 from oncolens.data import load_splits, split_features_target
-from oncolens.explain import sigmoid
 from oncolens.io_utils import read_json
-from oncolens.plots_shap import waterfall_rows
-from oncolens.style import BENIGN_COLOR, MALIGNANT_COLOR, apply_style
 
 N_TOP_SLIDERS = 8
 N_SHAP_ROWS = 10
@@ -39,12 +37,14 @@ PRESET_LABELS = {
     "Benign": "Typical benign (median of benign)",
     "Malignant": "Typical malignant (median of malignant)",
 }
+# Class colors, matching the figures (benign = blue, malignant = orange).
+BENIGN_COLOR = "#2a78d6"
+MALIGNANT_COLOR = "#eb6834"
 # Darker shades of the class colors, for text on white (4.5:1 contrast).
 BENIGN_INK = "#1c5cab"
 MALIGNANT_INK = "#b8481c"
 
 st.set_page_config(page_title="OncoLens", page_icon="🔬", layout="wide", initial_sidebar_state="expanded")
-apply_style()
 
 CSS = """
 <style>
@@ -242,7 +242,7 @@ def shap_chart(values: np.ndarray, data: np.ndarray, names: list[str], base: flo
         x="label_x:Q", y=y, text="label:N")
     refs = pd.DataFrame({
         "x": [base, final, cut],
-        "what": [f"base value {base:.2f}", f"this input {final:.2f} (p = {sigmoid(final):.3f})",
+        "what": [f"base value {base:.2f}", f"this input {final:.2f} (p = {1 / (1 + np.exp(-final)):.3f})",
                  f"decision threshold (p = {threshold:g})"],
         "dash": ["dot", "dash", "solid"],
     })
