@@ -54,7 +54,7 @@ def streamlit_server(port: int = PORT) -> Iterator[str]:
 def wait_for_app(page: Page) -> None:
     """Wait until the prediction metrics and the SHAP chart have rendered."""
     page.get_by_text("Model output").first.wait_for(timeout=120_000)
-    page.locator("[data-testid='stVegaLiteChart'] canvas, [data-testid='stVegaLiteChart'] svg").first.wait_for(
+    page.locator(".ol-bars").first.wait_for(
         timeout=120_000)
     page.wait_for_timeout(1500)
 

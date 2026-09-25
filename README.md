@@ -129,7 +129,7 @@ streamlit run app.py
   with ranges taken from the training data, plus one-click presets (median, typical benign, typical malignant).
 - Output: the predicted class at threshold 0.2, P(malignant) on a bar marked with the decision threshold, and the
   probability of the predicted class.
-- An interactive SHAP waterfall (hover a bar for details) and the top drivers for **the current input**.
+- A SHAP bar chart of the biggest contributions for **the current input** (hover a row for details).
 - A "Model performance" tab with the held-out test metrics and figures.
 
 | Performance tab | Benign example |
