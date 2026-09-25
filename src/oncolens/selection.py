@@ -35,14 +35,14 @@ def compare_default_models(X: pd.DataFrame, y: pd.Series) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("model")
 
 
-def make_grid_search(name: str) -> GridSearchCV:
+def make_grid_search(name: str, n_jobs: int = -1) -> GridSearchCV:
     """GridSearchCV over the model's grid, scored by ROC AUC with stratified 5-fold CV."""
     return GridSearchCV(
         make_pipeline(name),
         param_grid(name),
         scoring=SELECTION_METRIC,
         cv=make_cv(),
-        n_jobs=-1,
+        n_jobs=n_jobs,
     )
 
 
@@ -55,9 +55,9 @@ def nested_cv_tuned(X: pd.DataFrame, y: pd.Series) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("model")
 
 
-def tune_model(name: str, X: pd.DataFrame, y: pd.Series) -> GridSearchCV:
+def tune_model(name: str, X: pd.DataFrame, y: pd.Series, n_jobs: int = -1) -> GridSearchCV:
     """Run GridSearchCV on the whole training split and return the fitted search."""
-    search = make_grid_search(name)
+    search = make_grid_search(name, n_jobs=n_jobs)
     search.fit(X, y)
     return search
 

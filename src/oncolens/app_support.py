@@ -1,22 +1,24 @@
 """Helpers for the Streamlit app: load artifacts, slider ranges, presets, and predictions.
 
-Kept separate from app.py so the logic can be unit-tested without Streamlit.
+Kept separate from app.py so the logic can be unit-tested without Streamlit. Heavy modules
+(shap, xgboost via the model-selection code) are imported only when needed, so the hosted
+app stays well inside a small memory limit.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import joblib
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
 from oncolens import config
 from oncolens.data import load_splits, split_features_target
-from oncolens.explain import PipelineExplainer, build_explainer, explain_rows
 from oncolens.io_utils import read_json
-from oncolens.selection import tune_model
 
 DEFAULT_THRESHOLD: float = 0.5
 FEATURE_GROUPS: tuple[str, ...] = ("mean", "error", "worst")
@@ -46,12 +48,18 @@ class Prediction:
 
 
 def load_or_train_model() -> Pipeline:
-    """Load the saved final model, or re-fit logistic regression if it is missing."""
+    """Load the saved final model, or re-fit logistic regression if it is missing.
+
+    The re-fit runs in a single process: parallel workers each load their own copy of
+    numpy/scikit-learn, which is enough to exceed a small hosting memory limit.
+    """
     if config.FINAL_MODEL_FILE.exists():
         return joblib.load(config.FINAL_MODEL_FILE)
+    from oncolens.selection import tune_model  # imports xgboost; only needed for this fallback
+
     train, _ = load_splits()
     X, y = split_features_target(train)
-    model = tune_model("logistic_regression", X, y).best_estimator_
+    model = tune_model("logistic_regression", X, y, n_jobs=1).best_estimator_
     config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, config.FINAL_MODEL_FILE)
     return model
@@ -100,15 +108,56 @@ def predict(model: Pipeline, features: pd.DataFrame, threshold: float) -> Predic
     return Prediction(p_malignant=p, threshold=threshold)
 
 
-def explain_one(explainer: PipelineExplainer, features: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, float]:
+@dataclass
+class LinearShap:
+    """Exact SHAP values for a scaler + logistic regression pipeline, without importing shap.
+
+    With independent features, the SHAP value of feature j is coef_j * (x_j - mean_j) on the
+    scaled inputs, and the base value is the model's log-odds at the background mean. This is
+    what shap.LinearExplainer computes; a test checks the two agree.
+    """
+
+    pipeline: Pipeline
+    coef: np.ndarray
+    background_mean: np.ndarray
+    base_value: float
+
+    def __call__(self, features: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, float]:
+        scaled = self.pipeline[:-1].transform(features)
+        values = (np.asarray(scaled) - self.background_mean) * self.coef
+        return values[0], features.to_numpy()[0], self.base_value
+
+
+def make_explainer(model: Pipeline, X_background: pd.DataFrame) -> Any:
+    """A lightweight exact explainer for logistic regression, else the general shap-based one."""
+    estimator = model.named_steps["model"]
+    if isinstance(estimator, LogisticRegression):
+        mean = np.asarray(model[:-1].transform(X_background)).mean(axis=0)
+        coef = estimator.coef_[0]
+        return LinearShap(model, coef, mean, float(estimator.intercept_[0] + coef @ mean))
+    from oncolens.explain import build_explainer  # imports shap (~100 MB); only for other models
+
+    return build_explainer(model, X_background)
+
+
+def explain_one(explainer: Any, features: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, float]:
     """SHAP values, raw feature values, and base value for a single-row DataFrame."""
+    if isinstance(explainer, LinearShap):
+        return explainer(features)
+    from oncolens.explain import explain_rows
+
     expl = explain_rows(explainer, features)
     return expl.values[0], expl.data[0], float(np.ravel(expl.base_values)[0])
 
 
-def make_explainer(model: Pipeline, X_background: pd.DataFrame) -> PipelineExplainer:
-    """Thin wrapper so the app does not import explain internals directly."""
-    return build_explainer(model, X_background)
+def waterfall_rows(values: np.ndarray, data: np.ndarray, names: list[str], k: int) -> list[tuple[str, float]]:
+    """Top-k contributions (largest first) plus one aggregated row for the remaining features."""
+    order = np.argsort(-np.abs(values))
+    rows = [(f"{names[i]} = {data[i]:.4g}", float(values[i])) for i in order[:k]]
+    rest = order[k:]
+    if len(rest):
+        rows.append((f"{len(rest)} other features", float(values[rest].sum())))
+    return rows
 
 
 def format_probability(p: float) -> str:

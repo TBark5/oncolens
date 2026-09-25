@@ -8,6 +8,7 @@ import pandas as pd
 import shap
 from matplotlib.colors import LinearSegmentedColormap
 
+from oncolens.app_support import waterfall_rows
 from oncolens.config import RANDOM_STATE
 from oncolens.explain import sigmoid
 from oncolens.style import BENIGN_COLOR, INK_MUTED, INK_SECONDARY, MALIGNANT_COLOR, SERIES, SURFACE
@@ -39,16 +40,6 @@ def plot_beeswarm(explanation: shap.Explanation, max_display: int = 15) -> plt.F
     ax.set_title("SHAP summary: how each feature pushes predictions (training set)", loc="left")
     ax.set_xlabel("SHAP value (log-odds of malignancy; > 0 pushes toward malignant)")
     return fig
-
-
-def waterfall_rows(values: np.ndarray, data: np.ndarray, names: list[str], k: int) -> list[tuple[str, float]]:
-    """Top-k contributions (largest first) plus one aggregated row for the remaining features."""
-    order = np.argsort(-np.abs(values))
-    rows = [(f"{names[i]} = {data[i]:.4g}", float(values[i])) for i in order[:k]]
-    rest = order[k:]
-    if len(rest):
-        rows.append((f"{len(rest)} other features", float(values[rest].sum())))
-    return rows
 
 
 def plot_waterfall(values: np.ndarray, data: np.ndarray, names: list[str], base: float, title: str,
