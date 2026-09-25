@@ -58,7 +58,9 @@ def test_app_runs_without_exceptions() -> None:
     at = AppTest.from_file(str(APP), default_timeout=180).run()
     assert not at.exception
     assert len(at.slider) == 30
-    assert at.metric[0].value in ("Benign", "Malignant")
+    verdicts = [m.value for m in at.markdown if "data-verdict=" in m.value]
+    assert len(verdicts) == 1
+    assert 'data-verdict="Benign"' in verdicts[0] or 'data-verdict="Malignant"' in verdicts[0]
     texture = at.slider(key="worst texture")
     texture.set_value(float(texture.max)).run()
     assert not at.exception
