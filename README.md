@@ -126,14 +126,24 @@ streamlit run app.py
 ![Demo: raising worst texture moves the prediction and the SHAP waterfall](docs/demo.gif)
 
 - 30 sliders (the 8 most influential up front, the rest grouped as mean / standard error / worst values),
-  with ranges taken from the training data, plus presets such as "typical benign" and "typical malignant".
-- Output: the predicted class at threshold 0.2, P(malignant), and the probability of the predicted class.
-- A SHAP waterfall and a plain-language list of the biggest contributions for **the current input**.
+  with ranges taken from the training data, plus one-click presets (median, typical benign, typical malignant).
+- Output: the predicted class at threshold 0.2, P(malignant) on a bar marked with the decision threshold, and the
+  probability of the predicted class.
+- An interactive SHAP waterfall (hover a bar for details) and the top drivers for **the current input**.
 - A "Model performance" tab with the held-out test metrics and figures.
 
 | Performance tab | Benign example |
 |---|---|
 | ![Performance tab](docs/screenshots/app_performance.png) | ![Benign example](docs/screenshots/app_prediction_benign.png) |
+
+### Deploying to Streamlit Community Cloud
+
+1. Push the repo to GitHub, then on [share.streamlit.io](https://share.streamlit.io) choose **Create app**,
+   pick this repo and branch, and set the main file to `app.py`.
+2. Under **Advanced settings**, choose **Python 3.12 or newer** (the pinned requirements need it).
+3. Deploy. `requirements.txt` installs everything, `.streamlit/config.toml` sets the theme and fonts, and the
+   committed `results/` and `figures/` feed the app. `models/` is not committed, so the first visit re-fits the
+   logistic regression (a few seconds), and later visits reuse it.
 
 ## How to run
 
@@ -154,7 +164,7 @@ Other commands:
 pytest -q                              # tests only
 bash scripts/check_fresh_env.sh        # clone -> new venv -> clean run -> tests -> compare results
 pip install -r requirements-dev.txt
-python scripts/capture_screenshots.py --gif  # regenerate app screenshots + docs/demo.gif (uses your installed Chrome)
+python scripts/capture_screenshots.py --gif  # regenerate app screenshots + docs/demo.gif (installed Chrome; --browser chromium for Playwright's)
 ```
 
 The dataset ships with scikit-learn, so nothing is downloaded. A CSV copy is cached in `data/` on the first
